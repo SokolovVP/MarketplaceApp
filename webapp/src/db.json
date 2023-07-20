@@ -1,0 +1,52 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "title-1",
+      "description": "descr-1",
+      "endDate": "2013-02-17",
+      "isAvailable": true,
+      "cardDetailsLink": "link1"
+    },
+    {
+      "id": 2,
+      "title": "title-2",
+      "description": "descr-2",
+      "endDate": "2013-04-03",
+      "isAvailable": false,
+      "cardDetailsLink": "link2"
+    },
+    {
+      "id": 3,
+      "title": "title-3",
+      "description": "descr-3",
+      "endDate": "2013-07-12",
+      "isAvailable": true,
+      "cardDetailsLink": "link3"
+    },
+    {
+      "id": 4,
+      "title": "title-4",
+      "description": "descr-1",
+      "endDate": "2013-02-17",
+      "isAvailable": true,
+      "cardDetailsLink": "link4"
+    },
+    {
+      "id": 5,
+      "title": "title-5",
+      "description": "descr-2",
+      "endDate": "2013-04-03",
+      "isAvailable": true,
+      "cardDetailsLink": "link5"
+    },
+    {
+      "id": 6,
+      "title": "title-6",
+      "description": "descr-3",
+      "endDate": "2013-07-12",
+      "isAvailable": false,
+      "cardDetailsLink": "link6"
+    }
+  ]
+}
