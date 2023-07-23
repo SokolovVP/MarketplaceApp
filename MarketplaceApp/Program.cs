@@ -1,19 +1,14 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using MarketplaceApp.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.OpenApi.Models;
 using MarketplaceApp.Models;
-using Microsoft.OpenApi.Writers;
-using Microsoft.AspNetCore.Identity;
-using MarketplaceApp.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +18,6 @@ builder.Services.AddControllers(options =>
 {
     options.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider());
 });
-//builder.Services.AddControllers();
 
 
 //Add authentication services
@@ -74,17 +68,23 @@ builder.Services.AddSwaggerGen(opt =>
     });
 });
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
+var dbName = Environment.GetEnvironmentVariable("DB_NAME");
+var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD");
+//string _connectionString = $"Data Source={dbHost}; Trusted_Connection=True; Initial Catalog={dbName}; Integrated Security=True; TrustServerCertificate=true; User ID = sa; Password={dbPassword}";
+//string _connectionString = $"Data Source={dbHost}; Initial Catalog={dbName}; User ID=sa; Password={dbPassword}; Encrypt=false;";
+string _connectionString = $"Server={dbHost}; Database={dbName}; Trusted_Connection=False; User Id=sa; Password={dbPassword};" +
+    $"MultipleActiveResultSets=true; Encrypt=False; TrustServerCertificate=True; Integrated Security=False;";
+
+//builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString: _connectionString,
+    SqlServerDbContextOptionsBuilder=>SqlServerDbContextOptionsBuilder.EnableRetryOnFailure()));
+
 
 var app = builder.Build();
 
-//!!!
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
 app.UseCors(c => c.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 
-//!!!
 app.MapGet("/accessdenied", async (HttpContext context) =>
 {
     context.Response.StatusCode = 403;
@@ -107,8 +107,6 @@ app.MapPost("/login", (User loginData) =>
         new Claim(ClaimTypes.Role, _user.category),
         new Claim(ClaimTypes.Name, _user.email)
     };
-
-    ///!!!
     
 
 var jwt = new JwtSecurityToken(
@@ -151,9 +149,9 @@ app.Run();
 
 public class AuthOptions
 {
-    public const string ISSUER = "MyAuthServer"; // издатель токена
-    public const string AUDIENCE = "MyAuthClient"; // потребитель токена
-    const string KEY = "Marketplace123_app_321_secretKey";   // ключ для шифрации
+    public const string ISSUER = "MyAuthServer"; 
+    public const string AUDIENCE = "MyAuthClient"; 
+    const string KEY = "Marketplace123_app_321_secretKey";  
     public static SymmetricSecurityKey GetSymmetricSecurityKey() =>
         new SymmetricSecurityKey(Encoding.UTF8.GetBytes(KEY));
 }

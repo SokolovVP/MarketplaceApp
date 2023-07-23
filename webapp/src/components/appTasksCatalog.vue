@@ -81,6 +81,9 @@ export default {
       this.$router.push({ name: "authorization" });
     }
     this.retrieveQuests();
+    if (!this.$store.state.auth) {
+      this.$router.push({ name: "authorization" });
+    }
   },
 };
 </script>

@@ -1,0 +1,56 @@
+version: '3.4'
+networks:
+  marketplaceAppNetwork:
+
+services:
+  MarketplaceAppDB:
+    container_name: app-db
+    #image: mcr.microsoft.com/mssql/server:2022-latest
+    image: marketplaceappdbimage
+    build:
+        context: .
+        dockerfile: dbDockerData/Dockerfile
+    ports:
+        - ${db_port}:1433
+    networks:
+        - marketplaceAppNetwork
+    volumes:
+        #- .:/docker-entrypoint-initdb.d
+        - mssqldata:/var/opt/mssql
+  marketplaceapp:
+    container_name: MarketplaceAppApi
+    image: ${DOCKER_REGISTRY-}marketplaceapp
+    build:
+      context: .
+      dockerfile: MarketplaceApp/Dockerfile
+    ports:
+       - "80"
+       #- "7122:443"
+       - "${backend_port}:443"
+    depends_on:
+        - MarketplaceAppDB
+    environment:
+        - DB_HOST=MarketplaceAppDB
+        - DB_NAME=MarketplaceAppDB
+        - DB_SA_PASSWORD=StrongP@ssword123
+        - ASPNETCORE_ENVIRONMENT=Development
+        - ASPNETCORE_URLS=https://+:443;http://+:80
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro 
+    networks:
+        - marketplaceAppNetwork
+  marketplaceweb:
+    image: marketplacewebimage
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./webapp/Dockerfile
+      args:
+        VUE_APP_API_URL: https://localhost:${backend_port}
+    ports:
+      - "${frontend_port}:80"
+    depends_on:
+      - marketplaceapp
+volumes:
+  mssqldata:
